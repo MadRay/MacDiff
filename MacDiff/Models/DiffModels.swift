@@ -1,0 +1,54 @@
+import Foundation
+
+// MARK: - Enums
+
+enum DiffKind: Equatable {
+    case equal
+    case insertion
+    case deletion
+    case empty   // Placeholder row for alignment
+}
+
+enum AppMode: String, CaseIterable, Identifiable {
+    case text = "Text Input"
+    case file = "File Compare"
+    var id: String { rawValue }
+}
+
+enum FileSide {
+    case left, right
+}
+
+// MARK: - DiffLine
+
+struct DiffLine: Identifiable {
+    let id: UUID
+    let content: String
+    let kind: DiffKind
+    let lineNumber: Int?   // nil for .empty placeholder rows
+
+    init(content: String, kind: DiffKind, lineNumber: Int? = nil) {
+        self.id = UUID()
+        self.content = content
+        self.kind = kind
+        self.lineNumber = lineNumber
+    }
+}
+
+// MARK: - DiffResult
+
+struct DiffResult {
+    var leftLines:  [DiffLine]
+    var rightLines: [DiffLine]
+    var additions:  Int
+    var deletions:  Int
+    var unchanged:  Int
+
+    static let empty = DiffResult(
+        leftLines: [], rightLines: [],
+        additions: 0, deletions: 0, unchanged: 0
+    )
+
+    var hasChanges: Bool { additions > 0 || deletions > 0 }
+    var hasContent: Bool { !leftLines.isEmpty || !rightLines.isEmpty }
+}
