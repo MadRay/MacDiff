@@ -24,14 +24,16 @@ struct TextInputModeView: View {
                         subtitle:   "\(viewModel.diffResult.leftLines.filter  { $0.kind != .empty }.count) lines",
                         lines:      viewModel.diffResult.leftLines,
                         scrollSync: viewModel.scrollSync,
-                        side:       .left
+                        side:       .left,
+                        isJSON:     viewModel.leftIsJSON
                     )
                     DiffPaneView(
                         title:      "Modified",
                         subtitle:   "\(viewModel.diffResult.rightLines.filter { $0.kind != .empty }.count) lines",
                         lines:      viewModel.diffResult.rightLines,
                         scrollSync: viewModel.scrollSync,
-                        side:       .right
+                        side:       .right,
+                        isJSON:     viewModel.rightIsJSON
                     )
                 }
             } else {

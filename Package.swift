@@ -12,6 +12,7 @@ let package = Package(
                 "MacDiffApp.swift",
                 "Models/DiffModels.swift",
                 "Models/DiffEngine.swift",
+                "Models/JSONNormalizer.swift",
                 "ViewModels/DiffViewModel.swift",
                 "Views/ContentView.swift",
                 "Views/SummaryBannerView.swift",

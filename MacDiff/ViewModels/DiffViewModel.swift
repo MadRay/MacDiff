@@ -31,11 +31,22 @@ final class DiffViewModel {
 
     // MARK: Inputs
 
-    var leftText:  String = "" { didSet { scheduleRecompute() } }
-    var rightText: String = "" { didSet { scheduleRecompute() } }
+    /// Raw text values bound to the text-input panes.
+    /// Setting these also runs the JSON pre-processor pipeline.
+    var leftText:  String = "" { didSet { processAndRecompute(side: .left) } }
+    var rightText: String = "" { didSet { processAndRecompute(side: .right) } }
     var selectedMode: AppMode = .text
     var leftFilePath:  String = ""
     var rightFilePath: String = ""
+
+    // MARK: JSON mode flags
+
+    /// True when the left pane content was detected as valid JSON and
+    /// has been normalised (pretty-printed + key-sorted).
+    private(set) var leftIsJSON:  Bool = false
+    /// True when the right pane content was detected as valid JSON and
+    /// has been normalised (pretty-printed + key-sorted).
+    private(set) var rightIsJSON: Bool = false
 
     // MARK: Shared scroll state
 
@@ -49,6 +60,10 @@ final class DiffViewModel {
 
     private var recomputeTask: Task<Void, Never>?
 
+    /// Tracks whether we are currently applying a programmatic normalisation
+    /// update, preventing infinite didSet recursion.
+    private var isApplyingNormalisation = false
+
     // MARK: Methods
 
     func scheduleRecompute() {
@@ -60,18 +75,29 @@ final class DiffViewModel {
         }
     }
 
+    /// Loads a file from `url`, runs it through the JSON pre-processor pipeline,
+    /// and stores the (possibly normalised) text on the correct side.
     func loadFile(side: FileSide, url: URL) {
         guard url.isFileURL else { return }
         do {
-            let content = try String(contentsOf: url, encoding: .utf8)
+            let rawContent = try String(contentsOf: url, encoding: .utf8)
+            let (normalized, wasJSON) = JSONNormalizer.process(rawContent)
+
+            // Update flags and content without triggering another normalisation pass
+            isApplyingNormalisation = true
             switch side {
             case .left:
-                leftText = content
+                leftIsJSON   = wasJSON
+                leftText     = normalized
                 leftFilePath = url.lastPathComponent
             case .right:
-                rightText = content
+                rightIsJSON   = wasJSON
+                rightText     = normalized
                 rightFilePath = url.lastPathComponent
             }
+            isApplyingNormalisation = false
+
+            scheduleRecompute()
         } catch {
             print("MacDiff: failed to load \(url.lastPathComponent): \(error.localizedDescription)")
         }
@@ -79,15 +105,52 @@ final class DiffViewModel {
 
     func clearFile(side: FileSide) {
         switch side {
-        case .left:  leftText = "";  leftFilePath  = ""
-        case .right: rightText = ""; rightFilePath = ""
+        case .left:
+            leftText      = ""
+            leftFilePath  = ""
+            leftIsJSON    = false
+        case .right:
+            rightText     = ""
+            rightFilePath = ""
+            rightIsJSON   = false
         }
     }
 
     func clearAll() {
-        leftText = ""; rightText = ""
-        leftFilePath = ""; rightFilePath = ""
-        diffResult = .empty
+        leftText  = ""; rightText  = ""
+        leftFilePath  = ""; rightFilePath  = ""
+        leftIsJSON    = false; rightIsJSON    = false
+        diffResult    = .empty
         scrollSync.reset()
+    }
+
+    // MARK: - Private
+
+    /// Called from the `didSet` observers on `leftText` / `rightText`.
+    /// Runs the JSON normaliser when the change originates from user input
+    /// (not from a programmatic normalisation we already applied).
+    private func processAndRecompute(side: FileSide) {
+        guard !isApplyingNormalisation else { return }
+
+        let raw = side == .left ? leftText : rightText
+        let (normalized, wasJSON) = JSONNormalizer.process(raw)
+
+        if wasJSON && normalized != raw {
+            // Replace the text with the normalised version; guard prevents re-entry
+            isApplyingNormalisation = true
+            switch side {
+            case .left:  leftIsJSON = true;  leftText  = normalized
+            case .right: rightIsJSON = true; rightText = normalized
+            }
+            isApplyingNormalisation = false
+        } else {
+            // Plain text or already-normalised JSON — just update the flag
+            switch side {
+            case .left:  leftIsJSON  = wasJSON
+            case .right: rightIsJSON = wasJSON
+            }
+        }
+
+        scheduleRecompute()
     }
 }

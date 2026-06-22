@@ -30,14 +30,16 @@ struct FileModeView: View {
                         subtitle:   viewModel.leftFilePath,
                         lines:      viewModel.diffResult.leftLines,
                         scrollSync: viewModel.scrollSync,
-                        side:       .left
+                        side:       .left,
+                        isJSON:     viewModel.leftIsJSON
                     )
                     DiffPaneView(
                         title:      "Modified",
                         subtitle:   viewModel.rightFilePath,
                         lines:      viewModel.diffResult.rightLines,
                         scrollSync: viewModel.scrollSync,
-                        side:       .right
+                        side:       .right,
+                        isJSON:     viewModel.rightIsJSON
                     )
                 }
             } else {

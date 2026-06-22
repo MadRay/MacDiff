@@ -7,6 +7,7 @@ struct DiffPaneView: View {
     let lines:      [DiffLine]
     let scrollSync: ScrollSyncController
     let side:       FileSide
+    var isJSON:     Bool = false   // JSON mode indicator
 
     private var changeCount: Int {
         side == .left
@@ -32,6 +33,12 @@ struct DiffPaneView: View {
                 }
                 Spacer()
 
+                // JSON mode badge — subtle capsule shown when normalisation is active
+                if isJSON {
+                    JSONModeBadge()
+                        .transition(.opacity.combined(with: .scale(scale: 0.88, anchor: .trailing)))
+                }
+
                 // Change badge
                 if changeCount > 0 {
                     let badgeColor: Color = side == .left
@@ -49,6 +56,7 @@ struct DiffPaneView: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 7)
             .background(.bar)
+            .animation(.spring(duration: 0.28), value: isJSON)
 
             Divider()
 
@@ -65,5 +73,34 @@ struct DiffPaneView: View {
                 side:       side
             )
         }
+    }
+}
+
+// MARK: - JSON Mode Badge
+
+private struct JSONModeBadge: View {
+    /// Subtle accent: a muted amber/gold that reads as "informational"
+    /// without competing with the red/green diff colours.
+    private let accent = Color(hue: 0.12, saturation: 0.75, brightness: 0.92)
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "curlybraces")
+                .font(.system(size: 9, weight: .semibold))
+            Text("JSON")
+                .font(.system(size: 10, weight: .semibold, design: .monospaced))
+        }
+        .foregroundStyle(accent)
+        .padding(.horizontal, 7)
+        .padding(.vertical, 3)
+        .background(
+            Capsule()
+                .fill(accent.opacity(0.13))
+                .overlay(
+                    Capsule()
+                        .strokeBorder(accent.opacity(0.35), lineWidth: 0.75)
+                )
+        )
+        .help("JSON mode active — content has been normalised (pretty-printed, keys sorted)")
     }
 }
