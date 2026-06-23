@@ -1,6 +1,11 @@
 # MacDiff
 
+![MacDiff Logo](MacDiff-Logo.png)
+
+
 A native macOS diff viewer built with SwiftUI and Swift Package Manager. Compare text snippets or files side-by-side, with automatic JSON normalisation, synchronised scrolling, and a live change summary.
+
+![MacDiff UI](MacDiff-UI.png)
 
 ---
 
