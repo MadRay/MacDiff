@@ -13,8 +13,10 @@ swift build -c release
 
 echo "📦 Packaging MacDiff.app bundle..."
 mkdir -p MacDiff.app/Contents/MacOS
+mkdir -p MacDiff.app/Contents/Resources
 cp .build/release/MacDiff MacDiff.app/Contents/MacOS/MacDiff
 cp MacDiff/Info.plist MacDiff.app/Contents/Info.plist
+cp MacDiff/Resources/AppIcon.icns MacDiff.app/Contents/Resources/AppIcon.icns
 
 chmod +x MacDiff.app/Contents/MacOS/MacDiff
 

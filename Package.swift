@@ -21,6 +21,9 @@ let package = Package(
                 "Views/TextInputModeView.swift",
                 "Views/FileModeView.swift",
                 "Views/DropZoneView.swift",
+            ],
+            resources: [
+                .copy("Resources/AppIcon.icns"),
             ]
         )
     ]
