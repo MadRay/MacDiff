@@ -4,27 +4,34 @@ struct FileModeView: View {
     @Bindable var viewModel: DiffViewModel
 
     var body: some View {
-        VSplitView {
+        VStack(spacing: 0) {
             // ── File picker row ──────────────────────────────────────────
-            HSplitView {
+            HStack(spacing: 0) {
                 DropZoneView(
                     side:         .left,
                     filePath:     viewModel.leftFilePath,
                     onFileLoaded: { url in viewModel.loadFile(side: .left,  url: url) },
                     onClear:      { viewModel.clearFile(side: .left) }
                 )
+                .frame(maxWidth: .infinity)
+
+                Divider()
+
                 DropZoneView(
                     side:         .right,
                     filePath:     viewModel.rightFilePath,
                     onFileLoaded: { url in viewModel.loadFile(side: .right, url: url) },
                     onClear:      { viewModel.clearFile(side: .right) }
                 )
+                .frame(maxWidth: .infinity)
             }
-            .frame(minHeight: 88, maxHeight: 130)
+            .frame(height: 90)
+
+            Divider()
 
             // ── Diff result ──────────────────────────────────────────────
             if viewModel.diffResult.hasContent {
-                HSplitView {
+                HStack(spacing: 0) {
                     DiffPaneView(
                         title:      "Original",
                         subtitle:   viewModel.leftFilePath,
@@ -33,6 +40,10 @@ struct FileModeView: View {
                         side:       .left,
                         isJSON:     viewModel.leftIsJSON
                     )
+                    .frame(maxWidth: .infinity)
+
+                    Divider()
+
                     DiffPaneView(
                         title:      "Modified",
                         subtitle:   viewModel.rightFilePath,
@@ -41,6 +52,7 @@ struct FileModeView: View {
                         side:       .right,
                         isJSON:     viewModel.rightIsJSON
                     )
+                    .frame(maxWidth: .infinity)
                 }
             } else {
                 PlaceholderView(

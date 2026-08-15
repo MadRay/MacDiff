@@ -9,6 +9,7 @@ struct DropZoneView: View {
     let onClear:      () -> Void
 
     @State private var isTargeted = false
+    @State private var isHovered  = false
 
     private var hasFile: Bool { !filePath.isEmpty }
     private var accentColor: Color { side == .left
@@ -31,38 +32,47 @@ struct DropZoneView: View {
     // MARK: - Drop target
 
     private var dropTarget: some View {
-        VStack(spacing: 7) {
-            Image(systemName: isTargeted ? "arrow.down.to.line.circle.fill" : "square.and.arrow.down")
-                .font(.system(size: 28))
-                .foregroundStyle(isTargeted ? accentColor : .secondary)
-                .scaleEffect(isTargeted ? 1.15 : 1.0)
-                .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isTargeted)
+        Button(action: openPanel) {
+            VStack(spacing: 5) {
+                Image(systemName: isTargeted ? "arrow.down.to.line.circle.fill" : "square.and.arrow.down")
+                    .font(.system(size: 24))
+                    .foregroundStyle(isTargeted || isHovered ? accentColor : .secondary)
+                    .scaleEffect(isTargeted ? 1.15 : (isHovered ? 1.05 : 1.0))
+                    .animation(.spring(response: 0.25, dampingFraction: 0.6), value: isTargeted || isHovered)
 
-            Text(side == .left ? "Original File" : "Modified File")
-                .font(.subheadline.weight(.medium))
+                Text(side == .left ? "Original File" : "Modified File")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.primary)
 
-            HStack(spacing: 4) {
-                Text("Drop here or")
+                Text("Drop file here or click to choose")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
-                Button("choose a file") { openPanel() }
-                    .font(.caption)
-                    .buttonStyle(.link)
+                    .foregroundStyle(isHovered ? .primary : .secondary)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .contentShape(Rectangle())
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .strokeBorder(
+                        isTargeted ? accentColor : (isHovered ? accentColor.opacity(0.65) : Color.secondary.opacity(0.35)),
+                        style: StrokeStyle(
+                            lineWidth: isTargeted ? 2 : 1.5,
+                            dash: isTargeted ? [] : [8, 4]
+                        )
+                    )
+                    .padding(8)
+            )
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(isTargeted ? accentColor.opacity(0.08) : (isHovered ? accentColor.opacity(0.04) : Color.clear))
+                    .padding(8)
+            )
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.15)) {
+                isHovered = hovering
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .strokeBorder(
-                    isTargeted ? accentColor : Color.secondary.opacity(0.35),
-                    style: StrokeStyle(
-                        lineWidth: isTargeted ? 2 : 1.5,
-                        dash: isTargeted ? [] : [9, 5]
-                    )
-                )
-                .padding(10)
-        )
-        .background(isTargeted ? accentColor.opacity(0.05) : Color.clear)
     }
 
     // MARK: - File chip (after file is loaded)

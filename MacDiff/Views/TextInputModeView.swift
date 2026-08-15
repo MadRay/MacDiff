@@ -6,19 +6,24 @@ struct TextInputModeView: View {
     var body: some View {
         VSplitView {
             // ── Input section (top) ──────────────────────────────────────
-            HSplitView {
+            HStack(spacing: 0) {
                 TextInputPane(title: "Original",
                               text: $viewModel.leftText,
                               placeholder: "Paste or type original text here…")
+                    .frame(maxWidth: .infinity)
+
+                Divider()
+
                 TextInputPane(title: "Modified",
                               text: $viewModel.rightText,
                               placeholder: "Paste or type modified text here…")
+                    .frame(maxWidth: .infinity)
             }
             .frame(minHeight: 150, maxHeight: 320)
 
             // ── Diff result (bottom) ─────────────────────────────────────
             if viewModel.diffResult.hasContent {
-                HSplitView {
+                HStack(spacing: 0) {
                     DiffPaneView(
                         title:      "Original",
                         subtitle:   "\(viewModel.diffResult.leftLines.filter  { $0.kind != .empty }.count) lines",
@@ -27,6 +32,10 @@ struct TextInputModeView: View {
                         side:       .left,
                         isJSON:     viewModel.leftIsJSON
                     )
+                    .frame(maxWidth: .infinity)
+
+                    Divider()
+
                     DiffPaneView(
                         title:      "Modified",
                         subtitle:   "\(viewModel.diffResult.rightLines.filter { $0.kind != .empty }.count) lines",
@@ -35,6 +44,7 @@ struct TextInputModeView: View {
                         side:       .right,
                         isJSON:     viewModel.rightIsJSON
                     )
+                    .frame(maxWidth: .infinity)
                 }
             } else {
                 PlaceholderView(
