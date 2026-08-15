@@ -6,8 +6,9 @@ struct DiffPaneView: View {
     let subtitle:   String
     let lines:      [DiffLine]
     let scrollSync: ScrollSyncController
-    let side:       FileSide
-    var isJSON:     Bool = false   // JSON mode indicator
+    let side:          FileSide
+    var isJSON:        Bool = false   // JSON mode indicator
+    var maxLineLength: Int = 0
 
     private var changeCount: Int {
         side == .left
@@ -67,10 +68,11 @@ struct DiffPaneView: View {
             let currentOffset = scrollSync.offset
 
             DiffScrollView(
-                lines:      lines,
-                scrollSync: scrollSync,
-                syncOffset: currentOffset,
-                side:       side
+                lines:         lines,
+                scrollSync:    scrollSync,
+                syncOffset:    currentOffset,
+                side:          side,
+                maxLineLength: maxLineLength
             )
         }
     }

@@ -72,9 +72,14 @@ enum DiffEngine {
             }
         }
 
+        let maxOld = oldLines.map { $0.count }.max() ?? 0
+        let maxNew = newLines.map { $0.count }.max() ?? 0
+        let maxLineLength = max(maxOld, maxNew)
+
         return DiffResult(
             leftLines: leftLines, rightLines: rightLines,
-            additions: additions, deletions: deletions, unchanged: unchanged
+            additions: additions, deletions: deletions, unchanged: unchanged,
+            maxLineLength: maxLineLength
         )
     }
 

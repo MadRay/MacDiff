@@ -33,24 +33,26 @@ struct FileModeView: View {
             if viewModel.diffResult.hasContent {
                 HStack(spacing: 0) {
                     DiffPaneView(
-                        title:      "Original",
-                        subtitle:   viewModel.leftFilePath,
-                        lines:      viewModel.diffResult.leftLines,
-                        scrollSync: viewModel.scrollSync,
-                        side:       .left,
-                        isJSON:     viewModel.leftIsJSON
+                        title:         "Original",
+                        subtitle:      viewModel.leftFilePath,
+                        lines:         viewModel.diffResult.leftLines,
+                        scrollSync:    viewModel.scrollSync,
+                        side:          .left,
+                        isJSON:        viewModel.leftIsJSON,
+                        maxLineLength: viewModel.diffResult.maxLineLength
                     )
                     .frame(maxWidth: .infinity)
 
                     Divider()
 
                     DiffPaneView(
-                        title:      "Modified",
-                        subtitle:   viewModel.rightFilePath,
-                        lines:      viewModel.diffResult.rightLines,
-                        scrollSync: viewModel.scrollSync,
-                        side:       .right,
-                        isJSON:     viewModel.rightIsJSON
+                        title:         "Modified",
+                        subtitle:      viewModel.rightFilePath,
+                        lines:         viewModel.diffResult.rightLines,
+                        scrollSync:    viewModel.scrollSync,
+                        side:          .right,
+                        isJSON:        viewModel.rightIsJSON,
+                        maxLineLength: viewModel.diffResult.maxLineLength
                     )
                     .frame(maxWidth: .infinity)
                 }
