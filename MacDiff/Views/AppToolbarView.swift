@@ -6,38 +6,42 @@ struct AppToolbarView: View {
     let diffResult: DiffResult
     let isJSON: Bool
     let canSwap: Bool
-    var leadingInset: CGFloat = 78
+    var chrome: TitlebarChrome = .fallback
     let onSwap: () -> Void
     let onClear: () -> Void
 
     var body: some View {
-        HStack(spacing: 14) {
-            ModeSegmentedControl(selection: $selectedMode)
+        ZStack(alignment: .topLeading) {
+            DiffTheme.toolbarBackground
 
-            ToolbarStatusPills(diffResult: diffResult, isJSON: isJSON)
+            HStack(spacing: 12) {
+                ModeSegmentedControl(selection: $selectedMode)
 
-            Spacer(minLength: 8)
+                ToolbarStatusPills(diffResult: diffResult, isJSON: isJSON)
 
-            HStack(spacing: 8) {
-                ToolbarChromeButton(
-                    title: "Swap Panes",
-                    systemImage: "arrow.up.arrow.down",
-                    isEnabled: canSwap,
-                    action: onSwap
-                )
+                Spacer(minLength: 8)
 
-                ToolbarIconButton(
-                    systemImage: "trash",
-                    help: "Clear All",
-                    action: onClear
-                )
+                HStack(spacing: 8) {
+                    ToolbarChromeButton(
+                        title: "Swap Panes",
+                        systemImage: "arrow.up.arrow.down",
+                        isEnabled: canSwap,
+                        action: onSwap
+                    )
+
+                    ToolbarIconButton(
+                        systemImage: "trash",
+                        help: "Clear All",
+                        action: onClear
+                    )
+                }
             }
+            .padding(.leading, chrome.leadingInset)
+            .padding(.trailing, 16)
+            .padding(.top, chrome.controlsTopInset)
         }
-        .padding(.leading, leadingInset)
-        .padding(.trailing, 16)
-        .frame(height: 52)
+        .frame(height: chrome.height)
         .frame(maxWidth: .infinity)
-        .background(DiffTheme.toolbarBackground)
         .overlay(alignment: .bottom) {
             Rectangle()
                 .fill(DiffTheme.toolbarHairline)

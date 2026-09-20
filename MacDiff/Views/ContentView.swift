@@ -3,7 +3,7 @@ import AppKit
 
 struct ContentView: View {
     @State private var viewModel = DiffViewModel()
-    @State private var trafficLightInset: CGFloat = 78
+    @State private var chrome = TitlebarChrome.fallback
 
     private var isJSONActive: Bool {
         viewModel.leftIsJSON || viewModel.rightIsJSON
@@ -22,7 +22,7 @@ struct ContentView: View {
                 diffResult: viewModel.diffResult,
                 isJSON: isJSONActive,
                 canSwap: canSwap,
-                leadingInset: trafficLightInset,
+                chrome: chrome,
                 onSwap: { viewModel.swapPanes() },
                 onClear: { viewModel.clearAll() }
             )
@@ -40,47 +40,52 @@ struct ContentView: View {
                 isJSON: isJSONActive
             )
         }
-        // Draw under the system titlebar so traffic lights sit in our toolbar row.
         .ignoresSafeArea(.container, edges: .top)
         .background(DiffTheme.canvasBackground.ignoresSafeArea())
         .frame(minWidth: 960, minHeight: 600)
-        .background(
-            WindowChromeBridge(trafficLightInset: $trafficLightInset)
-        )
+        .background(WindowChromeBridge(chrome: $chrome))
     }
 }
 
-// MARK: - Window chrome
+// MARK: - Titlebar metrics
 
-/// Configures a transparent full-size titlebar and reports traffic-light width.
+struct TitlebarChrome: Equatable {
+    /// Distance from leading window edge to first toolbar control.
+    var leadingInset: CGFloat
+    /// Total toolbar / titlebar height.
+    var height: CGFloat
+    /// Top padding so controls share a baseline with traffic lights.
+    var controlsTopInset: CGFloat
+
+    static let fallback = TitlebarChrome(leadingInset: 86, height: 52, controlsTopInset: 11)
+}
+
+// MARK: - Window chrome bridge
+
 private struct WindowChromeBridge: NSViewRepresentable {
-    @Binding var trafficLightInset: CGFloat
+    @Binding var chrome: TitlebarChrome
 
     func makeNSView(context: Context) -> ChromeView {
         let view = ChromeView()
-        view.onInsetChange = { inset in
+        view.onChange = { next in
             DispatchQueue.main.async {
-                if abs(trafficLightInset - inset) > 0.5 {
-                    trafficLightInset = inset
-                }
+                if chrome != next { chrome = next }
             }
         }
         return view
     }
 
     func updateNSView(_ nsView: ChromeView, context: Context) {
-        nsView.onInsetChange = { inset in
+        nsView.onChange = { next in
             DispatchQueue.main.async {
-                if abs(trafficLightInset - inset) > 0.5 {
-                    trafficLightInset = inset
-                }
+                if chrome != next { chrome = next }
             }
         }
         nsView.applyChrome()
     }
 
     final class ChromeView: NSView {
-        var onInsetChange: ((CGFloat) -> Void)?
+        var onChange: ((TitlebarChrome) -> Void)?
 
         override func viewDidMoveToWindow() {
             super.viewDidMoveToWindow()
@@ -89,55 +94,58 @@ private struct WindowChromeBridge: NSViewRepresentable {
 
         override func layout() {
             super.layout()
-            reportTrafficLightInset()
+            publishMetrics()
         }
 
         func applyChrome() {
             guard let window else { return }
-
             window.titleVisibility = .hidden
             window.titlebarAppearsTransparent = true
             window.titlebarSeparatorStyle = .none
             window.styleMask.insert(.fullSizeContentView)
             window.isMovableByWindowBackground = true
             window.toolbar = nil
-
-            // Keep traffic lights visible and vertically centered in our toolbar.
-            for type: NSWindow.ButtonType in [.closeButton, .miniaturizeButton, .zoomButton] {
-                window.standardWindowButton(type)?.isHidden = false
-            }
-
-            reportTrafficLightInset()
+            publishMetrics()
         }
 
-        private func reportTrafficLightInset() {
+        private func publishMetrics() {
             guard let window,
+                  let contentView = window.contentView,
                   let close = window.standardWindowButton(.closeButton),
-                  let zoom = window.standardWindowButton(.zoomButton),
-                  let titlebar = close.superview
+                  let zoom = window.standardWindowButton(.zoomButton)
             else {
-                onInsetChange?(78)
+                onChange?(.fallback)
                 return
             }
 
-            // Convert zoom button's trailing edge into window content coordinates,
-            // then add a small gap before our segmented control.
-            let zoomFrame = zoom.convert(zoom.bounds, to: nil)
-            let inset = zoomFrame.maxX + 14
-            onInsetChange?(max(70, inset))
+            // Traffic-light frames in the content view's coordinate space.
+            let closeRect = close.superview?.convert(close.frame, to: contentView) ?? close.frame
+            let zoomRect  = zoom.superview?.convert(zoom.frame, to: contentView) ?? zoom.frame
 
-            // Nudge traffic lights to vertically center in a ~52pt toolbar row.
-            let toolbarHeight: CGFloat = 52
-            let buttonHeight = close.bounds.height
-            let y = ((toolbarHeight - buttonHeight) / 2).rounded()
-            for type: NSWindow.ButtonType in [.closeButton, .miniaturizeButton, .zoomButton] {
-                guard let button = window.standardWindowButton(type) else { continue }
-                var frame = button.frame
-                frame.origin.y = y
-                button.frame = frame
-            }
+            // Content is top-left origin in SwiftUI; AppKit contentView is bottom-left.
+            // Convert to top-down metrics for the SwiftUI toolbar.
+            let contentHeight = contentView.bounds.height
+            let lightsTop = contentHeight - closeRect.maxY
+            let lightsBottom = contentHeight - closeRect.minY
+            let lightsHeight = lightsBottom - lightsTop
 
-            _ = titlebar
+            // Titlebar tall enough for lights + comfortable vertical padding.
+            let verticalPadding: CGFloat = 10
+            let height = max(52, (lightsHeight + verticalPadding * 2).rounded())
+
+            // Center controls on the same midY as the traffic lights.
+            let lightsMidYFromTop = lightsTop + lightsHeight / 2
+            let controlRowHeight: CGFloat = 30
+            let controlsTopInset = max(8, (lightsMidYFromTop - controlRowHeight / 2).rounded())
+
+            // Generous gap after the green light before our segmented control.
+            let leadingInset = (zoomRect.maxX + 22).rounded()
+
+            onChange?(TitlebarChrome(
+                leadingInset: max(80, leadingInset),
+                height: height,
+                controlsTopInset: controlsTopInset
+            ))
         }
     }
 }
