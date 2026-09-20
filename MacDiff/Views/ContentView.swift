@@ -39,7 +39,5 @@ struct ContentView: View {
         }
         .background(DiffTheme.canvasBackground)
         .frame(minWidth: 960, minHeight: 600)
-        .toolbar(.hidden, for: .windowToolbar)
-        .navigationTitle("MacDiff")
     }
 }

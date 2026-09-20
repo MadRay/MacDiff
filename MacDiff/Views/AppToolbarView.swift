@@ -11,6 +11,10 @@ struct AppToolbarView: View {
 
     var body: some View {
         HStack(spacing: 14) {
+            // Leave room for native traffic lights overlaid by .hiddenTitleBar
+            Color.clear
+                .frame(width: 68)
+
             ModeSegmentedControl(selection: $selectedMode)
 
             ToolbarStatusPills(diffResult: diffResult, isJSON: isJSON)
@@ -32,8 +36,8 @@ struct AppToolbarView: View {
                 )
             }
         }
-        .padding(.horizontal, 16)
-        .frame(height: 56)
+        .padding(.trailing, 16)
+        .frame(height: 52)
         .background(DiffTheme.toolbarBackground)
         .overlay(alignment: .bottom) {
             Rectangle()
