@@ -6,13 +6,21 @@ enum DiffKind: Equatable {
     case equal
     case insertion
     case deletion
-    case empty   // Placeholder row for alignment
+    case modification  // Paired change — amber highlight on both panes
+    case empty         // Placeholder row for alignment
 }
 
 enum AppMode: String, CaseIterable, Identifiable {
     case text = "Text Input"
-    case file = "File Compare"
+    case file = "File Diff"
     var id: String { rawValue }
+
+    var systemImage: String {
+        switch self {
+        case .text: return "doc.text"
+        case .file: return "doc.on.doc"
+        }
+    }
 }
 
 enum FileSide {

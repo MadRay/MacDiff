@@ -40,10 +40,9 @@ enum DiffEngine {
             let isInserted = !newDone && insertedOffsets.contains(newIdx)
 
             if isRemoved && isInserted {
-                // Paired change — show as deletion on left, insertion on right
-                leftLines.append(DiffLine(content: oldLines[oldIdx], kind: .deletion,  lineNumber: oldIdx + 1))
-                rightLines.append(DiffLine(content: newLines[newIdx], kind: .insertion, lineNumber: newIdx + 1))
-                deletions += 1; additions += 1
+                // Paired change — treat as in-place modification (amber), not add+delete
+                leftLines.append(DiffLine(content: oldLines[oldIdx], kind: .modification, lineNumber: oldIdx + 1))
+                rightLines.append(DiffLine(content: newLines[newIdx], kind: .modification, lineNumber: newIdx + 1))
                 oldIdx += 1; newIdx += 1
 
             } else if isRemoved {
