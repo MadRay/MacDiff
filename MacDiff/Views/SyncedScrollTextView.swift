@@ -8,15 +8,17 @@ final class DiffGutterView: NSView {
     var lines: [DiffLine] = [] { didSet { needsDisplay = true } }
     var scrollOffsetY: CGFloat = 0 { didSet { needsDisplay = true } }
     weak var scrollView: NSScrollView?
+    weak var tableView: NSTableView?
 
     static let rowHeight: CGFloat = 22
-    static let numberWidth: CGFloat = 44
+    static let numberWidth: CGFloat = 50
     static let signWidth: CGFloat = 18
     static var width: CGFloat { numberWidth + signWidth }
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
-        wantsLayer = true
+        // Avoid layer-backed drawing quirks that leave sub-pixel gaps on recent macOS.
+        wantsLayer = false
     }
 
     required init?(coder: NSCoder) { fatalError() }
@@ -40,15 +42,27 @@ final class DiffGutterView: NSView {
 
         for row in startRow...endRow {
             let line = lines[row]
-            let rowY = CGFloat(row) * Self.rowHeight - scrollOffsetY
-            let numberRect = NSRect(x: 0, y: rowY, width: Self.numberWidth, height: Self.rowHeight)
-            let signRect   = NSRect(x: Self.numberWidth, y: rowY, width: Self.signWidth, height: Self.rowHeight)
-            let fullRect   = NSRect(x: 0, y: rowY, width: bounds.width, height: Self.rowHeight)
+
+            // Prefer the table's real row frame so highlights stay locked to content
+            // rows (inset/plain style and fractional scroll offsets on new macOS).
+            let rowY: CGFloat
+            let rowH: CGFloat
+            if let tv = tableView, row < tv.numberOfRows {
+                let rect = tv.rect(ofRow: row)
+                rowY = rect.origin.y - scrollOffsetY
+                rowH = rect.height
+            } else {
+                rowY = CGFloat(row) * Self.rowHeight - scrollOffsetY
+                rowH = Self.rowHeight
+            }
+
+            let fullRect = NSRect(x: 0, y: rowY.rounded(.towardZero), width: bounds.width, height: rowH.rounded(.up))
 
             DiffTheme.gutterFill(for: line.kind).setFill()
             fullRect.fill()
 
             let fg = DiffTheme.gutterForeground(for: line.kind)
+            let signRect = NSRect(x: Self.numberWidth, y: fullRect.origin.y, width: Self.signWidth, height: fullRect.height)
 
             if let num = line.lineNumber {
                 let str = "\(num)" as NSString
@@ -57,9 +71,10 @@ final class DiffGutterView: NSView {
                     .foregroundColor: fg
                 ]
                 let strSize = str.size(withAttributes: attrs)
+                // Right-align in the number column with comfortable trailing padding.
                 let textRect = NSRect(
-                    x: Self.numberWidth - strSize.width - 6,
-                    y: rowY + (Self.rowHeight - strSize.height) / 2,
+                    x: Self.numberWidth - strSize.width - 8,
+                    y: fullRect.origin.y + (fullRect.height - strSize.height) / 2,
                     width: strSize.width,
                     height: strSize.height
                 )
@@ -83,14 +98,12 @@ final class DiffGutterView: NSView {
                 let strSize = str.size(withAttributes: attrs)
                 let textRect = NSRect(
                     x: signRect.minX + (signRect.width - strSize.width) / 2,
-                    y: rowY + (Self.rowHeight - strSize.height) / 2,
+                    y: fullRect.origin.y + (fullRect.height - strSize.height) / 2,
                     width: strSize.width,
                     height: strSize.height
                 )
                 str.draw(in: textRect, withAttributes: attrs)
             }
-
-            _ = numberRect
         }
 
         NSColor.separatorColor.withAlphaComponent(0.35).setFill()
@@ -116,7 +129,9 @@ final class DiffRowView: NSTableRowView {
     override func drawBackground(in dirtyRect: NSRect) {
         if let fill = DiffTheme.rowFill(for: diffKind) {
             fill.setFill()
-            dirtyRect.fill()
+            // Fill the full row bounds (not just dirtyRect) so highlights stay
+            // edge-to-edge and align with the gutter on recent macOS.
+            bounds.fill()
         }
     }
 
@@ -308,6 +323,8 @@ struct DiffScrollView: NSViewRepresentable {
         tv.focusRingType              = .none
         tv.allowsColumnSelection      = false
         tv.columnAutoresizingStyle    = .noColumnAutoresizing
+        // Plain style avoids inset row backgrounds that misalign with the gutter.
+        tv.style = .plain
 
         let contentCol = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("content"))
         contentCol.title        = ""
@@ -322,10 +339,14 @@ struct DiffScrollView: NSViewRepresentable {
         sv.autohidesScrollers    = true
         sv.borderType            = .noBorder
         sv.drawsBackground       = false
+        sv.automaticallyAdjustsContentInsets = false
+        sv.contentInsets = .init(top: 0, left: 0, bottom: 0, right: 0)
+        sv.scrollerInsets = .init(top: 0, left: 0, bottom: 0, right: 0)
 
         // ── Pinned gutter ─────────────────────────────────────────────
         let gutter = DiffGutterView(frame: .zero)
         gutter.scrollView = sv
+        gutter.tableView = tv
 
         coord.scrollView = sv
         coord.tableView  = tv
