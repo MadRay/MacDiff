@@ -50,6 +50,57 @@ enum DiffTheme {
         }))
     }
 
+    /// Track behind the mode segmented control.
+    static var segmentTrack: Color {
+        Color(nsColor: .init(name: "MacDiffSegTrack", dynamicProvider: { appearance in
+            appearance.isDarkMacDiff
+                ? NSColor(srgbRed: 0.224, green: 0.224, blue: 0.243, alpha: 1) // #39393e
+                : NSColor(srgbRed: 0.863, green: 0.863, blue: 0.878, alpha: 1) // #dcdce0
+        }))
+    }
+
+    /// Selected segment fill.
+    static var segmentSelected: Color {
+        Color(nsColor: .init(name: "MacDiffSegSelected", dynamicProvider: { appearance in
+            appearance.isDarkMacDiff
+                ? NSColor(srgbRed: 0.329, green: 0.329, blue: 0.345, alpha: 1) // #545458
+                : NSColor.white
+        }))
+    }
+
+    /// Bordered pill / toolbar button fill (Wonder chrome).
+    static var controlFill: Color {
+        Color(nsColor: .init(name: "MacDiffControlFill", dynamicProvider: { appearance in
+            appearance.isDarkMacDiff
+                ? NSColor(srgbRed: 0.180, green: 0.180, blue: 0.196, alpha: 1) // #2e2e32
+                : NSColor.white
+        }))
+    }
+
+    static var controlBorder: Color {
+        Color(nsColor: .init(name: "MacDiffControlBorder", dynamicProvider: { appearance in
+            appearance.isDarkMacDiff
+                ? NSColor(srgbRed: 0.227, green: 0.227, blue: 0.247, alpha: 1) // #3a3a3f
+                : NSColor(srgbRed: 0.878, green: 0.878, blue: 0.894, alpha: 1) // #e0e0e4
+        }))
+    }
+
+    static var controlLabel: Color {
+        Color(nsColor: .init(name: "MacDiffControlLabel", dynamicProvider: { appearance in
+            appearance.isDarkMacDiff
+                ? NSColor(srgbRed: 0.780, green: 0.780, blue: 0.800, alpha: 1) // #c7c7cc
+                : NSColor(srgbRed: 0.294, green: 0.294, blue: 0.314, alpha: 1) // #4b4b50
+        }))
+    }
+
+    static var toolbarHairline: Color {
+        Color(nsColor: .init(name: "MacDiffToolbarHairline", dynamicProvider: { appearance in
+            appearance.isDarkMacDiff
+                ? NSColor(srgbRed: 0.220, green: 0.220, blue: 0.235, alpha: 1) // #38383c
+                : NSColor(srgbRed: 0.839, green: 0.839, blue: 0.855, alpha: 1) // #d6d6da
+        }))
+    }
+
     static var separator: Color {
         Color(nsColor: .init(name: "MacDiffSeparator", dynamicProvider: { appearance in
             appearance.isDarkMacDiff

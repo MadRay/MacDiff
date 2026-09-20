@@ -7,7 +7,7 @@ struct MacDiffApp: App {
             ContentView()
         }
         .windowStyle(.titleBar)
-        .windowToolbarStyle(.unified)
+        .windowToolbarStyle(.unifiedCompact(showsTitle: true))
         .defaultSize(width: 1200, height: 760)
         .commands {
             CommandGroup(replacing: .newItem) { }
