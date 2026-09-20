@@ -6,15 +6,12 @@ struct AppToolbarView: View {
     let diffResult: DiffResult
     let isJSON: Bool
     let canSwap: Bool
+    var leadingInset: CGFloat = 78
     let onSwap: () -> Void
     let onClear: () -> Void
 
     var body: some View {
         HStack(spacing: 14) {
-            // Leave room for native traffic lights overlaid by .hiddenTitleBar
-            Color.clear
-                .frame(width: 68)
-
             ModeSegmentedControl(selection: $selectedMode)
 
             ToolbarStatusPills(diffResult: diffResult, isJSON: isJSON)
@@ -36,8 +33,10 @@ struct AppToolbarView: View {
                 )
             }
         }
+        .padding(.leading, leadingInset)
         .padding(.trailing, 16)
         .frame(height: 52)
+        .frame(maxWidth: .infinity)
         .background(DiffTheme.toolbarBackground)
         .overlay(alignment: .bottom) {
             Rectangle()
