@@ -6,42 +6,40 @@ struct AppToolbarView: View {
     let diffResult: DiffResult
     let isJSON: Bool
     let canSwap: Bool
-    var chrome: TitlebarChrome = .fallback
     let onSwap: () -> Void
     let onClear: () -> Void
 
+    /// Room for native traffic lights + a comfortable gap.
+    private let trafficLightLeadingInset: CGFloat = 84
+
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            DiffTheme.toolbarBackground
+        HStack(spacing: 12) {
+            ModeSegmentedControl(selection: $selectedMode)
 
-            HStack(spacing: 12) {
-                ModeSegmentedControl(selection: $selectedMode)
+            ToolbarStatusPills(diffResult: diffResult, isJSON: isJSON)
 
-                ToolbarStatusPills(diffResult: diffResult, isJSON: isJSON)
+            Spacer(minLength: 8)
 
-                Spacer(minLength: 8)
+            HStack(spacing: 8) {
+                ToolbarChromeButton(
+                    title: "Swap Panes",
+                    systemImage: "arrow.up.arrow.down",
+                    isEnabled: canSwap,
+                    action: onSwap
+                )
 
-                HStack(spacing: 8) {
-                    ToolbarChromeButton(
-                        title: "Swap Panes",
-                        systemImage: "arrow.up.arrow.down",
-                        isEnabled: canSwap,
-                        action: onSwap
-                    )
-
-                    ToolbarIconButton(
-                        systemImage: "trash",
-                        help: "Clear All",
-                        action: onClear
-                    )
-                }
+                ToolbarIconButton(
+                    systemImage: "trash",
+                    help: "Clear All",
+                    action: onClear
+                )
             }
-            .padding(.leading, chrome.leadingInset)
-            .padding(.trailing, 16)
-            .padding(.top, chrome.controlsTopInset)
         }
-        .frame(height: chrome.height)
+        .padding(.leading, trafficLightLeadingInset)
+        .padding(.trailing, 16)
+        .frame(height: 52)
         .frame(maxWidth: .infinity)
+        .background(DiffTheme.toolbarBackground)
         .overlay(alignment: .bottom) {
             Rectangle()
                 .fill(DiffTheme.toolbarHairline)
