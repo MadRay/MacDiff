@@ -13,8 +13,8 @@ struct DropZoneView: View {
 
     private var hasFile: Bool { !filePath.isEmpty }
     private var accentColor: Color { side == .left
-        ? Color(red: 0.93, green: 0.28, blue: 0.28)
-        : Color(red: 0.12, green: 0.76, blue: 0.47) }
+        ? DiffTheme.deletion
+        : DiffTheme.addition }
 
     var body: some View {
         Group {
@@ -50,10 +50,11 @@ struct DropZoneView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(Rectangle())
+            .background(DiffTheme.canvasBackground)
             .background(
                 RoundedRectangle(cornerRadius: 10)
                     .strokeBorder(
-                        isTargeted ? accentColor : (isHovered ? accentColor.opacity(0.65) : Color.secondary.opacity(0.35)),
+                        isTargeted ? accentColor : (isHovered ? accentColor.opacity(0.65) : DiffTheme.separator),
                         style: StrokeStyle(
                             lineWidth: isTargeted ? 2 : 1.5,
                             dash: isTargeted ? [] : [8, 4]

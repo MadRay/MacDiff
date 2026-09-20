@@ -12,7 +12,9 @@ struct TextInputModeView: View {
                               placeholder: "Paste or type original text here…")
                     .frame(maxWidth: .infinity)
 
-                Divider()
+                Rectangle()
+                    .fill(DiffTheme.separator)
+                    .frame(width: 1)
 
                 TextInputPane(title: "Modified",
                               text: $viewModel.rightText,
@@ -26,25 +28,29 @@ struct TextInputModeView: View {
                 HStack(spacing: 0) {
                     DiffPaneView(
                         title:         "Original",
-                        subtitle:      "\(viewModel.diffResult.leftLines.filter  { $0.kind != .empty }.count) lines",
+                        subtitle:      lineSubtitle(for: viewModel.diffResult.leftLines, isJSON: viewModel.leftIsJSON),
                         lines:         viewModel.diffResult.leftLines,
                         scrollSync:    viewModel.scrollSync,
                         side:          .left,
                         isJSON:        viewModel.leftIsJSON,
-                        maxLineLength: viewModel.diffResult.maxLineLength
+                        maxLineLength: viewModel.diffResult.maxLineLength,
+                        badge:         "ORIGINAL"
                     )
                     .frame(maxWidth: .infinity)
 
-                    Divider()
+                    Rectangle()
+                        .fill(DiffTheme.separator)
+                        .frame(width: 1)
 
                     DiffPaneView(
                         title:         "Modified",
-                        subtitle:      "\(viewModel.diffResult.rightLines.filter { $0.kind != .empty }.count) lines",
+                        subtitle:      lineSubtitle(for: viewModel.diffResult.rightLines, isJSON: viewModel.rightIsJSON),
                         lines:         viewModel.diffResult.rightLines,
                         scrollSync:    viewModel.scrollSync,
                         side:          .right,
                         isJSON:        viewModel.rightIsJSON,
-                        maxLineLength: viewModel.diffResult.maxLineLength
+                        maxLineLength: viewModel.diffResult.maxLineLength,
+                        badge:         "WORKING COPY"
                     )
                     .frame(maxWidth: .infinity)
                 }
@@ -55,6 +61,12 @@ struct TextInputModeView: View {
                 )
             }
         }
+    }
+
+    private func lineSubtitle(for lines: [DiffLine], isJSON: Bool) -> String {
+        let count = lines.filter { $0.kind != .empty }.count
+        let base = "\(count) lines"
+        return isJSON ? "\(base) · Normalized JSON" : base
     }
 }
 
@@ -67,11 +79,10 @@ private struct TextInputPane: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
             HStack {
                 Text(title)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(DiffTheme.secondaryLabel)
                 Spacer()
                 if !text.isEmpty {
                     Button { text = "" } label: {
@@ -82,14 +93,16 @@ private struct TextInputPane: View {
                     .help("Clear")
                 }
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(.bar)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(DiffTheme.paneHeaderBackground)
 
-            Divider()
+            Rectangle()
+                .fill(DiffTheme.separator)
+                .frame(height: 1)
 
-            // Editable text area with placeholder
             ZStack(alignment: .topLeading) {
+                DiffTheme.canvasBackground
                 if text.isEmpty {
                     Text(placeholder)
                         .font(.system(.body, design: .monospaced))
@@ -119,10 +132,11 @@ struct PlaceholderView: View {
                 .foregroundStyle(.quaternary)
             Text(message)
                 .font(.callout)
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(DiffTheme.tertiaryLabel)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(DiffTheme.canvasBackground)
     }
 }
