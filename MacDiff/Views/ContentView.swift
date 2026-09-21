@@ -56,9 +56,16 @@ private struct WindowChromeBridge: NSViewRepresentable {
     }
 
     final class ChromeView: NSView {
+        private static let toolbarHeight: CGFloat = 52
+
         override func viewDidMoveToWindow() {
             super.viewDidMoveToWindow()
             applyChrome()
+        }
+
+        override func layout() {
+            super.layout()
+            alignTrafficLights()
         }
 
         func applyChrome() {
@@ -69,6 +76,27 @@ private struct WindowChromeBridge: NSViewRepresentable {
             window.styleMask.insert(.fullSizeContentView)
             window.isMovableByWindowBackground = true
             window.toolbar = nil
+            alignTrafficLights()
+        }
+
+        /// Keep traffic lights vertically centered in our 52pt toolbar row.
+        private func alignTrafficLights() {
+            guard let window,
+                  let close = window.standardWindowButton(.closeButton),
+                  let container = close.superview
+            else { return }
+
+            let buttonHeight = close.frame.height
+            // Titlebar coordinates are bottom-origin; pin lights to the vertical
+            // center of the top toolbarHeight band.
+            let y = container.bounds.height - Self.toolbarHeight / 2 - buttonHeight / 2
+
+            for type: NSWindow.ButtonType in [.closeButton, .miniaturizeButton, .zoomButton] {
+                guard let button = window.standardWindowButton(type) else { continue }
+                var frame = button.frame
+                frame.origin.y = y.rounded()
+                button.frame = frame
+            }
         }
     }
 }

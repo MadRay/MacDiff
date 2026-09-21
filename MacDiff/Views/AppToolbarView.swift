@@ -11,6 +11,8 @@ struct AppToolbarView: View {
 
     /// Room for native traffic lights + a comfortable gap.
     private let trafficLightLeadingInset: CGFloat = 84
+    /// Matches typical macOS traffic-light offset from the window top.
+    private let contentTopInset: CGFloat = 10
 
     var body: some View {
         HStack(spacing: 12) {
@@ -37,8 +39,8 @@ struct AppToolbarView: View {
         }
         .padding(.leading, trafficLightLeadingInset)
         .padding(.trailing, 16)
-        .frame(height: 52)
-        .frame(maxWidth: .infinity)
+        .padding(.top, contentTopInset)
+        .frame(maxWidth: .infinity, minHeight: 52, maxHeight: 52, alignment: .top)
         .background(DiffTheme.toolbarBackground)
         .overlay(alignment: .bottom) {
             Rectangle()
