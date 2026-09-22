@@ -47,6 +47,17 @@ struct ToolbarStatusPills: View {
                         Text("\(diffResult.deletions) Deletion\(diffResult.deletions == 1 ? "" : "s")")
                             .font(.system(size: 12))
                             .foregroundStyle(DiffTheme.controlLabel)
+
+                        Text("·")
+                            .font(.system(size: 12))
+                            .foregroundStyle(DiffTheme.secondaryLabel.opacity(0.55))
+
+                        Circle()
+                            .fill(DiffTheme.workingCopyAccent)
+                            .frame(width: 7, height: 7)
+                        Text("\(diffResult.modifications) Changed")
+                            .font(.system(size: 12))
+                            .foregroundStyle(DiffTheme.controlLabel)
                     }
                     .contentTransition(.numericText())
                 }
@@ -55,6 +66,7 @@ struct ToolbarStatusPills: View {
         .animation(.spring(duration: 0.28), value: isJSON)
         .animation(.spring(duration: 0.28), value: diffResult.additions)
         .animation(.spring(duration: 0.28), value: diffResult.deletions)
+        .animation(.spring(duration: 0.28), value: diffResult.modifications)
     }
 }
 

@@ -28,6 +28,7 @@ enum DiffEngine {
         var rightLines: [DiffLine] = []
         var additions  = 0
         var deletions  = 0
+        var modifications = 0
         var unchanged  = 0
 
         var oldIdx = 0
@@ -43,6 +44,7 @@ enum DiffEngine {
                 // Paired change — treat as in-place modification (amber), not add+delete
                 leftLines.append(DiffLine(content: oldLines[oldIdx], kind: .modification, lineNumber: oldIdx + 1))
                 rightLines.append(DiffLine(content: newLines[newIdx], kind: .modification, lineNumber: newIdx + 1))
+                modifications += 1
                 oldIdx += 1; newIdx += 1
 
             } else if isRemoved {
@@ -77,8 +79,8 @@ enum DiffEngine {
 
         return DiffResult(
             leftLines: leftLines, rightLines: rightLines,
-            additions: additions, deletions: deletions, unchanged: unchanged,
-            maxLineLength: maxLineLength
+            additions: additions, deletions: deletions, modifications: modifications,
+            unchanged: unchanged, maxLineLength: maxLineLength
         )
     }
 

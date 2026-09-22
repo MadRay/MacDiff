@@ -50,15 +50,16 @@ struct DiffResult {
     var rightLines: [DiffLine]
     var additions:  Int
     var deletions:  Int
+    var modifications: Int
     var unchanged:  Int
     var maxLineLength: Int = 0
 
     static let empty = DiffResult(
         leftLines: [], rightLines: [],
-        additions: 0, deletions: 0, unchanged: 0,
+        additions: 0, deletions: 0, modifications: 0, unchanged: 0,
         maxLineLength: 0
     )
 
-    var hasChanges: Bool { additions > 0 || deletions > 0 }
+    var hasChanges: Bool { additions > 0 || deletions > 0 || modifications > 0 }
     var hasContent: Bool { !leftLines.isEmpty || !rightLines.isEmpty }
 }

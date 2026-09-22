@@ -15,7 +15,7 @@ struct FooterStatsBar: View {
 
     private var statsText: String {
         guard diffResult.hasContent else { return "No content" }
-        return "\(lineCount) lines · \(diffResult.additions) added · \(diffResult.deletions) removed"
+        return "\(lineCount) lines · \(diffResult.additions) added · \(diffResult.deletions) removed · \(diffResult.modifications) changed"
     }
 
     private var encodingText: String {
@@ -58,5 +58,6 @@ struct FooterStatsBar: View {
         }
         .animation(.spring(duration: 0.28), value: diffResult.additions)
         .animation(.spring(duration: 0.28), value: diffResult.deletions)
+        .animation(.spring(duration: 0.28), value: diffResult.modifications)
     }
 }
