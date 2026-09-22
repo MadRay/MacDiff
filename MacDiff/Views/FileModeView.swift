@@ -5,87 +5,69 @@ import UniformTypeIdentifiers
 struct FileModeView: View {
     @Bindable var viewModel: DiffViewModel
 
+    private var leftHasFile:  Bool { !viewModel.leftFilePath.isEmpty }
+    private var rightHasFile: Bool { !viewModel.rightFilePath.isEmpty }
+    private var bothFilesSelected: Bool { leftHasFile && rightHasFile }
+
     var body: some View {
-        VStack(spacing: 0) {
-            if viewModel.diffResult.hasContent || hasAnyFile {
-                HStack(spacing: 0) {
-                    DiffPaneView(
-                        title:         displayName(viewModel.leftFilePath, fallback: "Original"),
-                        subtitle:      fileSubtitle(path: viewModel.leftFilePath, side: .left),
-                        lines:         viewModel.diffResult.leftLines,
-                        scrollSync:    viewModel.scrollSync,
-                        side:          .left,
-                        isJSON:        viewModel.leftIsJSON,
-                        maxLineLength: viewModel.diffResult.maxLineLength,
-                        badge:         "ORIGINAL",
-                        showDropAffordance: viewModel.leftFilePath.isEmpty,
-                        onDropTap:     { openPanel(side: .left) }
-                    )
-                    .frame(maxWidth: .infinity)
-                    .onDrop(of: [UTType.fileURL], isTargeted: nil) { providers in
-                        handleDrop(providers: providers, side: .left)
-                    }
+        HStack(spacing: 0) {
+            filePane(side: .left)
+                .frame(maxWidth: .infinity)
 
-                    Rectangle()
-                        .fill(DiffTheme.separator)
-                        .frame(width: 1)
+            Rectangle()
+                .fill(DiffTheme.separator)
+                .frame(width: 1)
 
-                    DiffPaneView(
-                        title:         displayName(viewModel.rightFilePath, fallback: "Modified"),
-                        subtitle:      fileSubtitle(path: viewModel.rightFilePath, side: .right),
-                        lines:         viewModel.diffResult.rightLines,
-                        scrollSync:    viewModel.scrollSync,
-                        side:          .right,
-                        isJSON:        viewModel.rightIsJSON,
-                        maxLineLength: viewModel.diffResult.maxLineLength,
-                        badge:         "WORKING COPY",
-                        showDropAffordance: true,
-                        onDropTap:     { openPanel(side: .right) }
-                    )
-                    .frame(maxWidth: .infinity)
-                    .onDrop(of: [UTType.fileURL], isTargeted: nil) { providers in
-                        handleDrop(providers: providers, side: .right)
-                    }
-                }
-            } else {
-                HStack(spacing: 0) {
-                    DropZoneView(
-                        side:         .left,
-                        filePath:     viewModel.leftFilePath,
-                        onFileLoaded: { url in viewModel.loadFile(side: .left,  url: url) },
-                        onClear:      { viewModel.clearFile(side: .left) }
-                    )
-                    .frame(maxWidth: .infinity)
-
-                    Rectangle()
-                        .fill(DiffTheme.separator)
-                        .frame(width: 1)
-
-                    DropZoneView(
-                        side:         .right,
-                        filePath:     viewModel.rightFilePath,
-                        onFileLoaded: { url in viewModel.loadFile(side: .right, url: url) },
-                        onClear:      { viewModel.clearFile(side: .right) }
-                    )
-                    .frame(maxWidth: .infinity)
-                }
-            }
+            filePane(side: .right)
+                .frame(maxWidth: .infinity)
         }
         .background(DiffTheme.canvasBackground)
     }
 
-    private var hasAnyFile: Bool {
-        !viewModel.leftFilePath.isEmpty || !viewModel.rightFilePath.isEmpty
+    // MARK: - Per-side pane
+
+    @ViewBuilder
+    private func filePane(side: FileSide) -> some View {
+        let hasFile = side == .left ? leftHasFile : rightHasFile
+
+        if hasFile {
+            // File selected — use the diff pane chrome (and drop-to-replace when both are loaded).
+            DiffPaneView(
+                title:         displayName(
+                    side == .left ? viewModel.leftFilePath : viewModel.rightFilePath,
+                    fallback: side == .left ? "Original" : "Modified"
+                ),
+                subtitle:      fileSubtitle(path: side == .left ? viewModel.leftFilePath : viewModel.rightFilePath, side: side),
+                lines:         side == .left ? viewModel.diffResult.leftLines : viewModel.diffResult.rightLines,
+                scrollSync:    viewModel.scrollSync,
+                side:          side,
+                isJSON:        side == .left ? viewModel.leftIsJSON : viewModel.rightIsJSON,
+                maxLineLength: viewModel.diffResult.maxLineLength,
+                badge:         side == .left ? "ORIGINAL" : "WORKING COPY",
+                showDropAffordance: bothFilesSelected,
+                onDropTap:     { openPanel(side: side) }
+            )
+            .onDrop(of: [UTType.fileURL], isTargeted: nil) { providers in
+                handleDrop(providers: providers, side: side)
+            }
+        } else {
+            // No file yet — keep the large empty drop-zone style.
+            DropZoneView(
+                side:         side,
+                filePath:     "",
+                onFileLoaded: { url in viewModel.loadFile(side: side, url: url) },
+                onClear:      { viewModel.clearFile(side: side) }
+            )
+        }
     }
+
+    // MARK: - Helpers
 
     private func displayName(_ path: String, fallback: String) -> String {
         path.isEmpty ? fallback : (path as NSString).lastPathComponent
     }
 
     private func fileSubtitle(path: String, side: FileSide) -> String {
-        if path.isEmpty {
-            return side == .left ? "Drop or choose a file" : "Drop file to compare"
-        }
         let lines = side == .left
             ? viewModel.diffResult.leftLines
             : viewModel.diffResult.rightLines
