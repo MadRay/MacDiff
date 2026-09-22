@@ -59,9 +59,9 @@ private struct ModeSegmentedControl: View {
         HStack(spacing: 2) {
             ForEach(AppMode.allCases) { mode in
                 Button {
-                    withAnimation(.easeInOut(duration: 0.15)) {
-                        selection = mode
-                    }
+                    // Don't wrap in withAnimation — that made Text Input's VSplitView
+                    // animate its layout differently from File Diff on tab switch.
+                    selection = mode
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: mode.systemImage)
@@ -79,6 +79,7 @@ private struct ModeSegmentedControl: View {
                                 color: selection == mode ? Color.black.opacity(0.08) : .clear,
                                 radius: 1, y: 0.5
                             )
+                            .animation(.easeInOut(duration: 0.15), value: selection)
                     )
                 }
                 .buttonStyle(.plain)

@@ -25,13 +25,16 @@ struct ContentView: View {
                 onClear: { viewModel.clearAll() }
             )
 
-            Group {
-                switch viewModel.selectedMode {
-                case .text: TextInputModeView(viewModel: viewModel)
-                case .file: FileModeView(viewModel: viewModel)
-                }
+            ZStack {
+                TextInputModeView(viewModel: viewModel)
+                    .opacity(viewModel.selectedMode == .text ? 1 : 0)
+                    .allowsHitTesting(viewModel.selectedMode == .text)
+
+                FileModeView(viewModel: viewModel)
+                    .opacity(viewModel.selectedMode == .file ? 1 : 0)
+                    .allowsHitTesting(viewModel.selectedMode == .file)
             }
-            .animation(.easeInOut(duration: 0.18), value: viewModel.selectedMode)
+            // Same crossfade for both modes — avoids VSplitView's insert layout animation.
 
             FooterStatsBar(
                 diffResult: viewModel.diffResult,
