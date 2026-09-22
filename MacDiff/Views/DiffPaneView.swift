@@ -7,64 +7,97 @@ struct DiffPaneView: View {
     let lines:      [DiffLine]
     let scrollSync: ScrollSyncController
     let side:          FileSide
-    var isJSON:        Bool = false   // JSON mode indicator
+    var isJSON:        Bool = false
     var maxLineLength: Int = 0
+    var badge:         String? = nil
+    var showDropAffordance: Bool = false
+    var onDropTap: (() -> Void)? = nil
 
-    private var changeCount: Int {
-        side == .left
-            ? lines.filter { $0.kind == .deletion  }.count
-            : lines.filter { $0.kind == .insertion }.count
+    private var resolvedBadge: String {
+        if let badge { return badge }
+        return side == .left ? "ORIGINAL" : "WORKING COPY"
+    }
+
+    private var badgeColor: Color {
+        side == .left ? DiffTheme.secondaryLabel : DiffTheme.workingCopyAccent
     }
 
     var body: some View {
         VStack(spacing: 0) {
             // ── Header bar ──────────────────────────────────────────────
-            HStack(spacing: 8) {
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(title)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.primary)
+            HStack(spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(DiffTheme.iconTileBackground)
+                        .frame(width: 34, height: 34)
+                    Image(systemName: isJSON ? "curlybraces" : "doc.text")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(DiffTheme.secondaryLabel)
+                }
+
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 8) {
+                        Text(title)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+
+                        Text(resolvedBadge)
+                            .font(.system(size: 10, weight: .medium))
+                            .tracking(0.25)
+                            .foregroundStyle(badgeColor)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(
+                                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                                    .fill(DiffTheme.badgeBackground)
+                            )
+                    }
+
                     if !subtitle.isEmpty {
                         Text(subtitle)
-                            .font(.system(.caption2, design: .monospaced))
-                            .foregroundStyle(.tertiary)
+                            .font(.system(size: 11))
+                            .foregroundStyle(DiffTheme.tertiaryLabel)
                             .lineLimit(1)
                             .truncationMode(.middle)
                     }
                 }
-                Spacer()
 
-                // JSON mode badge — subtle capsule shown when normalisation is active
-                if isJSON {
-                    JSONModeBadge()
-                        .transition(.opacity.combined(with: .scale(scale: 0.88, anchor: .trailing)))
-                }
+                Spacer(minLength: 8)
 
-                // Change badge
-                if changeCount > 0 {
-                    let badgeColor: Color = side == .left
-                        ? Color(red: 0.93, green: 0.28, blue: 0.28)
-                        : Color(red: 0.12, green: 0.76, blue: 0.47)
-                    Text("\(changeCount)")
-                        .font(.system(.caption2, design: .monospaced).weight(.bold))
-                        .foregroundStyle(badgeColor)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 2)
-                        .background(Capsule().fill(badgeColor.opacity(0.14)))
-                        .contentTransition(.numericText())
+                if showDropAffordance {
+                    Button {
+                        onDropTap?()
+                    } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: "square.and.arrow.down")
+                                .font(.system(size: 11, weight: .medium))
+                            Text("Drop file to compare")
+                                .font(.system(size: 11, weight: .medium))
+                        }
+                        .foregroundStyle(DiffTheme.secondaryLabel)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(
+                            Capsule()
+                                .strokeBorder(DiffTheme.separator, style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .help("Choose a file to compare")
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 7)
-            .background(.bar)
+            .padding(.horizontal, 16)
+            .frame(height: 64)
+            .background(DiffTheme.paneHeaderBackground)
+            .overlay(alignment: .bottom) {
+                Rectangle()
+                    .fill(DiffTheme.separator)
+                    .frame(height: 1)
+            }
             .animation(.spring(duration: 0.28), value: isJSON)
 
-            Divider()
-
             // ── Diff content ─────────────────────────────────────────────
-            // Read scrollSync.offset here so SwiftUI registers this view
-            // as a dependency — changes to offset will re-render this view,
-            // which passes the new syncOffset into DiffScrollView.
             let currentOffset = scrollSync.offset
 
             DiffScrollView(
@@ -74,35 +107,7 @@ struct DiffPaneView: View {
                 side:          side,
                 maxLineLength: maxLineLength
             )
+            .background(DiffTheme.canvasBackground)
         }
-    }
-}
-
-// MARK: - JSON Mode Badge
-
-private struct JSONModeBadge: View {
-    /// Subtle accent: a muted amber/gold that reads as "informational"
-    /// without competing with the red/green diff colours.
-    private let accent = Color(hue: 0.12, saturation: 0.75, brightness: 0.92)
-
-    var body: some View {
-        HStack(spacing: 4) {
-            Image(systemName: "curlybraces")
-                .font(.system(size: 9, weight: .semibold))
-            Text("JSON")
-                .font(.system(size: 10, weight: .semibold, design: .monospaced))
-        }
-        .foregroundStyle(accent)
-        .padding(.horizontal, 7)
-        .padding(.vertical, 3)
-        .background(
-            Capsule()
-                .fill(accent.opacity(0.13))
-                .overlay(
-                    Capsule()
-                        .strokeBorder(accent.opacity(0.35), lineWidth: 0.75)
-                )
-        )
-        .help("JSON mode active — content has been normalised (pretty-printed, keys sorted)")
     }
 }

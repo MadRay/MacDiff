@@ -89,11 +89,11 @@ final class DiffViewModel {
             case .left:
                 leftIsJSON   = wasJSON
                 leftText     = normalized
-                leftFilePath = url.lastPathComponent
+                leftFilePath = url.path
             case .right:
                 rightIsJSON   = wasJSON
                 rightText     = normalized
-                rightFilePath = url.lastPathComponent
+                rightFilePath = url.path
             }
             isApplyingNormalisation = false
 
@@ -122,6 +122,17 @@ final class DiffViewModel {
         leftIsJSON    = false; rightIsJSON    = false
         diffResult    = .empty
         scrollSync.reset()
+    }
+
+    /// Swaps the left and right panes (text, file paths, and JSON flags).
+    func swapPanes() {
+        isApplyingNormalisation = true
+        swap(&leftText, &rightText)
+        swap(&leftFilePath, &rightFilePath)
+        swap(&leftIsJSON, &rightIsJSON)
+        isApplyingNormalisation = false
+        scrollSync.reset()
+        scheduleRecompute()
     }
 
     // MARK: - Private

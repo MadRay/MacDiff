@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 @main
 struct MacDiffApp: App {
@@ -6,8 +7,7 @@ struct MacDiffApp: App {
         WindowGroup {
             ContentView()
         }
-        .windowStyle(.titleBar)
-        .windowToolbarStyle(.unified)
+        .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 1200, height: 760)
         .commands {
             CommandGroup(replacing: .newItem) { }
