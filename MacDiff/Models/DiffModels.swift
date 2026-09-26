@@ -21,6 +21,19 @@ enum AppMode: String, CaseIterable, Identifiable {
         case .file: return "doc.on.doc"
         }
     }
+
+    /// Command-key shortcut used to select this mode.
+    var shortcut: Character {
+        switch self {
+        case .text: return "1"
+        case .file: return "2"
+        }
+    }
+
+    /// Display form shown in Help and tooltips (e.g. "⌘1").
+    var shortcutDisplay: String {
+        "⌘\(shortcut)"
+    }
 }
 
 enum FileSide {

@@ -83,7 +83,7 @@ private struct ModeSegmentedControl: View {
                     )
                 }
                 .buttonStyle(.plain)
-                .help(mode.rawValue)
+                .help("\(mode.rawValue) (\(mode.shortcutDisplay))")
             }
         }
         .padding(2)

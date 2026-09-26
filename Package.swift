@@ -16,6 +16,7 @@ let package = Package(
                 "Models/JSONNormalizer.swift",
                 "ViewModels/DiffViewModel.swift",
                 "Views/ContentView.swift",
+                "Views/HelpView.swift",
                 "Views/AppToolbarView.swift",
                 "Views/ToolbarStatusPills.swift",
                 "Views/FooterStatsBar.swift",

@@ -45,6 +45,20 @@ struct ContentView: View {
         .background(DiffTheme.canvasBackground.ignoresSafeArea())
         .frame(minWidth: 960, minHeight: 600)
         .background(WindowChromeBridge())
+        .focusedSceneValue(\.selectedAppMode, $viewModel.selectedMode)
+    }
+}
+
+// MARK: - Focused mode binding (for ⌘1 / ⌘2 menu commands)
+
+struct SelectedAppModeKey: FocusedValueKey {
+    typealias Value = Binding<AppMode>
+}
+
+extension FocusedValues {
+    var selectedAppMode: Binding<AppMode>? {
+        get { self[SelectedAppModeKey.self] }
+        set { self[SelectedAppModeKey.self] = newValue }
     }
 }
 
